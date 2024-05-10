@@ -13,28 +13,28 @@ export default class ProductRepository {
     const query = this.db.prepare('SELECT * FROM ' + this.tableName);
     return await query.all();
   }
-  public async addNew(products: []) {
+  public async addNew(data) {
     try {
       const insertStatement = this.db.prepare(`
       INSERT INTO ${this.tableName} (itemId, name, itemUrl, priceShow, ratingScore, review, discount, sellerName)
       VALUES (?, ?, ?, ?, ?, ?, ? , ?)
     `);
-      const transaction = this.db.transation()
+      // const transaction = this.db.begin()
       try {
-        products.map(async (data: any) => {
-          await insertStatement.bind([data.itemId, data.name, data.priceShow, data.ratingScore, data.review, data.discount, data.sellerName]);
-        })
+          await insertStatement.bind([data.itemId, data.name,data.itemUrl, data.priceShow, data.ratingScore, data.review, data.discount, data.sellerName]);
+          await insertStatement.run();
       } catch (er) {
         console.log(er)
+        return false
       }
-      try {
-        transaction.commit();
-        console.log('All rows inserted successfully.');
-      } catch (error) {
-        transaction.rollback();
-        console.error('Failed to insert all rows. Rolling back transaction.');
-      }
-      return await insertStatement.run();
+      // try {
+      //   transaction.commit();
+      //   console.log('All rows inserted successfully.');
+      // } catch (error) {
+      //   transaction.rollback();
+      //   console.error('Failed to insert all rows. Rolling back transaction.');
+      // }
+      return true
     }
     catch (error) {
       console.log(error)

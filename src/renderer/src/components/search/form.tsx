@@ -1,9 +1,8 @@
 import { productApi } from "@renderer/apis/product"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 function SearchForm() {
     const [keyWord, setKeyword] = useState('')
-    const [checked, setChecked] = useState([])
     const [loading, setLoading] = useState(false)
     const [data, setData] = useState([])
     function handleChange(e) {
@@ -18,29 +17,24 @@ function SearchForm() {
         setData(data.map((product)=>{return {...product, checked:false}}))
         setLoading(false)
     }
-    function handleCheck(isChecked, product){
-        let list;
-        console.log(isChecked)
-        if (!isChecked){
-            list = {...checked, product}
-            
-        } else {
-            if(checked.length > 0) list = checked.filter((item:any)=>{return item.itemId != product.itemId})
-        }
-        const newData:any = data.map((pro:any)=>{
-            if (product.itemId == pro.itemId) pro.checked = !pro.checked
-            return pro
+    function handleCheck(product){
+        const update:any = data.map((pro:any)=>{
+            if (pro.itemId == product.itemId) return {...pro, checked: !pro.checked}
+            else return pro
         })
-        setData(newData)
-        setChecked(list)
+        setData(update)
     }
     async function handleSave(){
-        console.log(checked)
-        await productApi.createNew(checked)
+        await productApi.createNew(data.filter((pro:any)=>{return pro.checked}))
+        const updateData:any = data.filter((pro:any)=>{return !pro.checked})
+        setData(updateData)
     }
     function handleClear(){
-        setChecked([])
+        setData([])
     }
+    useEffect(()=>{
+
+    },[setData])
     return (
         <>
             <div>
@@ -65,7 +59,7 @@ function SearchForm() {
                     </tr>
                     {data && data.length > 0 && data.map((product: any) => (
                         <tr>
-                            <td><input type="checkbox" checked={product.checked?true:false} onChange={()=>handleCheck(product.checked, product)}></input></td>
+                            <td><input type="checkbox" checked={product.checked} onChange={()=>handleCheck(product)}></input></td>
                             <td><a href={"https:" + product.itemUrl}>
                                 <span>{product.name} </span>
                             </a>

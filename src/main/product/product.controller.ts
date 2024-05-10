@@ -62,8 +62,11 @@ export class ProductController {
             return await this.searchProduct(keyword)
         })
         ipcMain.handle('createnew', async (event, data:[])=>{
-            console.log(data.length)
-            if(data.length > 0) await this.productRepository.addNew(data)
+            if(data.length > 0){
+                for(let i = 0; i < data.length; i++){
+                    await this.productRepository.addNew(data[i])
+                }
+            } 
         })
     }
     private exportExcelFile = (data: Array<any>, filePath: string) => {
