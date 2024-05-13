@@ -1,4 +1,5 @@
 import { ElectronAPI } from '@electron-toolkit/preload'
+import { LoginData } from "../main/product/product.controller"
 
 declare global {
   interface Window {
@@ -16,6 +17,8 @@ declare global {
     deleteProduct   (payload:number),
     updateProduct   (payload:any),
     exportFile      (isExcel:boolean),
-    search          (search:string)
+    search          (search:string),
+    loginWithFb     (data:LoginData[]),
+    like            (posts?:number)
   }
 }

@@ -1,0 +1,18 @@
+.parent{
+    width: 100%;
+}
+.parent div{
+    display: inline-block;
+}
+.child{
+    width: 50%;
+}
+.margin-left-40{
+    margin-left: 40%;
+}
+.child label{
+    color: brown;
+}
+label{
+    
+}

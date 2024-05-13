@@ -1,4 +1,4 @@
-import { dialog, ipcMain } from 'electron';
+import { BrowserWindow, IpcMainInvokeEvent, dialog, ipcMain } from 'electron';
 import ProductRepository from './repositories/product.repository';
 import { CreateNewProductReqDto } from '../../preload/product/dtos/productReq.dto';
 import { CreateNewProductResDto } from '../../preload/product/dtos/productRes.dto';
@@ -6,22 +6,20 @@ import { RepositorySingleton } from '../common/instance/repository.instance';
 import { writeFile } from 'fs-extra'
 import { utils } from 'xlsx'
 import { Puppeteer } from './puppeteer';
+import { Worker } from 'worker_threads'
+import createWorker from '../worker?nodeWorker'
+
 const XLSX = require('xlsx')
 
 
 export class ProductController {
     private readonly productRepository: ProductRepository;
-    private pupp;
+    private pupp:Puppeteer;
 
     constructor(db: any) {
         this.productRepository = RepositorySingleton.getProductInstance(db)
         this.pupp = new Puppeteer()
         // Register IPC handlers
-        // ipcMain.handle('createnew', async (event, data: CreateNewProductReqDto): Promise<CreateNewProductResDto | undefined> => {
-        //     const result = await this.productRepository.addNew(data);
-        //     if (result) return result;
-        //     else throw new Error('Create failed')
-        // });
 
         ipcMain.handle('getAllProducts', async () => {
             const products = await this.productRepository.getProducts();
@@ -58,15 +56,26 @@ export class ProductController {
                 }
             })
         })
-        ipcMain.handle('search', async (event, keyword:string)=>{
+        ipcMain.handle('search', async (event, keyword: string) => {
             return await this.searchProduct(keyword)
         })
-        ipcMain.handle('createnew', async (event, data:[])=>{
-            if(data.length > 0){
-                for(let i = 0; i < data.length; i++){
+        ipcMain.handle('createnew', async (event, data: []) => {
+            if (data.length > 0) {
+                for (let i = 0; i < data.length; i++) {
                     await this.productRepository.addNew(data[i])
                 }
-            } 
+            }
+        })
+        ipcMain.handle('loginWithFb', async (event: IpcMainInvokeEvent, data: LoginData[]) => {
+            // const worker: Worker = createWorker({ workerData: 'worker' })
+            // worker.postMessage(data[1])
+            
+            await this.pupp.login(data[0], true)
+        })
+        ipcMain.handle('like',async(event, data?:number)=>{
+            console.log(data)
+            if (!data) await this.pupp.like()
+                else await this.pupp.likePosts(data)
         })
     }
     private exportExcelFile = (data: Array<any>, filePath: string) => {
@@ -91,7 +100,7 @@ export class ProductController {
             console.log(error)
         }
     }
-    private showConfirmMessage = async (browserWindow) => {
+    private showConfirmMessage = async (browserWindow:any) => {
         const response = dialog.showMessageBoxSync(browserWindow, ({
             title: 'Confirm',
             message: "Confirm delete",
@@ -104,5 +113,16 @@ export class ProductController {
     public searchProduct = async (keyword) => {
         await this.pupp.searchInLazada(keyword)
         return this.pupp.product_data
+    }
+}
+
+export class LoginData {
+    username: string;
+    password: string;
+    faCode: string;
+    constructor(username: string, password: string, faCode: string) {
+        this.username = username
+        this.password = password
+        this.faCode = faCode
     }
 }

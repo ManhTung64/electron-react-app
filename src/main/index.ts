@@ -1,18 +1,21 @@
-import { app, shell, BrowserWindow, screen, Shell, Tray } from 'electron'
+import { app, shell, BrowserWindow, screen, Tray } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import DataSource from '../../data-source'
 import { ControllerSingleton } from './common/instance/controller.instance'
 import { Notification } from 'electron'
+// import { FbThread } from './threads/fb.thread'
 
-let mainWindow;
+
+let mainWindow: BrowserWindow;
+
 async function createWindow() {
   // Create the browser window.
-  const scree = screen.getPrimaryDisplay().workArea;
+  const scree: Electron.Rectangle = screen.getPrimaryDisplay().workArea;
   mainWindow = new BrowserWindow({
-    width: scree.width/2,
-    height: scree.height/2,
+    width: scree.width / 2,
+    height: scree.height / 2,
     show: false,
     autoHideMenuBar: true,
     ...(process.platform === 'linux' ? { icon } : {}),
@@ -22,8 +25,7 @@ async function createWindow() {
       sandbox: false
     }
   })
-  console.log(screen.getAllDisplays())
-  
+
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
   })
@@ -33,8 +35,6 @@ async function createWindow() {
     return { action: 'deny' }
   })
 
-  // HMR for renderer base on electron-vite cli.
-  // Load the remote URL for development or the local html file for production.
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
     mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
   } else {
@@ -42,55 +42,42 @@ async function createWindow() {
   }
 }
 
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
 app.whenReady().then(async () => {
 
-  // Set app user model id for windows
   electronApp.setAppUserModelId('com.electron')
-  // console.log(Notification.isSupported())
+
   new Notification({
-    title:'Test notifiction',
-    subtitle:'Subtitle',
-    body:'Go Go GO'
+    title: 'Test notifiction',
+    subtitle: 'Subtitle',
+    body: 'Go Go GO'
   }).show()
   const tray = new Tray('10838352.png')
   tray.setToolTip('Electron app')
-  tray.on('click',()=>{
-    mainWindow.isVisible() ? mainWindow.hide():mainWindow.show()
+  tray.on('click', () => {
+    mainWindow.isVisible() ? mainWindow.hide() : mainWindow.show()
   })
 
-
-  // Default open or close DevTools by F12 in development
-  // and ignore CommandOrControl + R in production.
-  // see https://github.com/alex8088/electron-toolkit/tree/master/packages/utils
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)
   })
 
   // connect db
-  try{
+  try {
     const dataSource = DataSource.getInstance();
     const db = dataSource.getDatabase();
     ControllerSingleton.getProductInstance(db)
-  }catch(error){
+  } catch (error) {
     console.log(error)
   }
 
   createWindow()
   
-
   app.on('activate', function () {
-    // On macOS it's common to re-create a window in the app when the
-    // dock icon is clicked and there are no other windows open.
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
 })
 
-// Quit when all windows are closed, except on macOS. There, it's common
-// for applications and their menu bar to stay active until the user quits
-// explicitly with Cmd + Q.
+
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit()

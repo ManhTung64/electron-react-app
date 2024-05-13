@@ -44,7 +44,7 @@ function SearchForm() {
                     type="text" placeholder="Search" />
                 <button onClick={submitInput}>Search</button>
                 <input type="button" value="Clear" onClick={handleClear}></input>
-                    <input type="button" value="Save" onClick={handleSave}></input>
+                <input type="button" value="Save" onClick={handleSave}></input>
             </div>
             <div className="scrollable">
                 <table>

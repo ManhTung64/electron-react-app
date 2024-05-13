@@ -1,12 +1,10 @@
-import Versions from './components/Versions'
-import electronLogo from './assets/electron.svg'
-import ListProduct from './components/product/listProduct'
-import SearchForm from './components/search/form'
+import LoginForm from './components/product/fb'
 
 function App() {
   return (
     <>
-    <SearchForm></SearchForm>
+    {/* <SearchForm></SearchForm> */}
+    <LoginForm></LoginForm>
       {/* <ListProduct></ListProduct>
       <Versions></Versions> */}
     </>
